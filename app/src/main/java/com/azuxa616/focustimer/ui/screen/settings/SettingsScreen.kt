@@ -18,13 +18,16 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.azuxa616.focustimer.data.model.Task
 
@@ -115,6 +119,17 @@ fun SettingsScreen(
                         onDeleteClick = { viewModel.deleteTask(task) }
                     )
                 }
+                
+                // 导入测试数据按钮
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    ImportTestDataSection(
+                        isExecuting = state.isExecutingScript,
+                        executionMessage = state.scriptExecutionMessage,
+                        onImportClick = { viewModel.executeTestDataScript() },
+                        onDismissMessage = { viewModel.clearScriptExecutionMessage() }
+                    )
+                }
             }
         }
     }
@@ -131,6 +146,114 @@ fun SettingsScreen(
                 }
             },
             onDismiss = { viewModel.cancelEditingTask() }
+        )
+    }
+    
+    // 执行结果对话框
+    state.scriptExecutionMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { viewModel.clearScriptExecutionMessage() },
+            title = { Text("导入测试数据") },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearScriptExecutionMessage() }) {
+                    Text("确定")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * 导入测试数据区域
+ */
+@Composable
+private fun ImportTestDataSection(
+    isExecuting: Boolean,
+    executionMessage: String?,
+    onImportClick: () -> Unit,
+    onDismissMessage: () -> Unit
+) {
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "测试数据",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "导入测试数据用于开发和测试",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            if (isExecuting) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(16.dp).height(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("正在导入...")
+                }
+            } else {
+                OutlinedButton(
+                    onClick = { showConfirmDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("导入测试数据")
+                }
+            }
+        }
+    }
+    
+    // 确认对话框
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text("确认导入") },
+            text = {
+                Column {
+                    Text("此操作将：")
+                    Text("1. 清除现有的任务和会话数据")
+                    Text("2. 插入5个测试任务和约40条会话记录")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "确定要继续吗？",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showConfirmDialog = false
+                        onImportClick()
+                    }
+                ) {
+                    Text("确定")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("取消")
+                }
+            }
         )
     }
 }

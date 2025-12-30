@@ -38,7 +38,7 @@ class FocusTimerApp : Application() {
     /**
      * 数据库实例
      */
-    private val database by lazy {
+    val database by lazy {
         AppDatabase.getInstance(this)
     }
 

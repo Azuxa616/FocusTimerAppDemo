@@ -6,6 +6,7 @@
  */
 package com.azuxa616.focustimer.ui.navigation
 
+import android.content.Context
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -14,12 +15,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.azuxa616.focustimer.FocusTimerApp
+import com.azuxa616.focustimer.data.local.AppDatabase
 import com.azuxa616.focustimer.data.repository.FocusRepository
 import com.azuxa616.focustimer.data.repository.SettingsRepository
 import com.azuxa616.focustimer.data.repository.TaskRepository
@@ -61,6 +65,11 @@ fun AppNavGraph(
     taskRepository: TaskRepository,
     settingsRepository: SettingsRepository
 ) {
+    // 获取上下文和数据库实例
+    val context = LocalContext.current
+    val application = context.applicationContext as FocusTimerApp
+    val database = application.database
+    
     // 创建导航控制器
     val navController = rememberNavController()
 
@@ -136,7 +145,9 @@ fun AppNavGraph(
                 val viewModel: SettingsViewModel = viewModel(
                     factory = SettingsViewModel.Companion.Factory(
                         taskRepository = taskRepository,
-                        settingsRepository = settingsRepository
+                        settingsRepository = settingsRepository,
+                        context = context,
+                        database = database
                     )
                 )
                 SettingsScreen(viewModel = viewModel)

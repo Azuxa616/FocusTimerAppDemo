@@ -1,14 +1,19 @@
 package com.azuxa616.focustimer.ui.screen.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.azuxa616.focustimer.data.SqlScriptExecutor
+import com.azuxa616.focustimer.data.local.AppDatabase
 import com.azuxa616.focustimer.data.model.Task
 import com.azuxa616.focustimer.data.repository.SettingsRepository
 import com.azuxa616.focustimer.data.repository.TaskRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 设置页面ViewModel
@@ -17,7 +22,9 @@ import kotlinx.coroutines.launch
  */
 class SettingsViewModel(
     private val taskRepository: TaskRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val context: Context,
+    private val database: AppDatabase
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(SettingsState.Empty)
     val state: StateFlow<SettingsState> = mutableState
@@ -110,15 +117,53 @@ class SettingsViewModel(
         }
     }
 
+    /**
+     * 执行测试数据SQL脚本
+     */
+    fun executeTestDataScript() {
+        viewModelScope.launch {
+            mutableState.value = mutableState.value.copy(
+                isExecutingScript = true,
+                scriptExecutionMessage = null
+            )
+            
+            val result = withContext(Dispatchers.IO) {
+                val sqliteDatabase = database.getWritableDatabase()
+                SqlScriptExecutor.executeScript(
+                    context = context,
+                    database = sqliteDatabase,
+                    scriptFileName = "test_data.sql"
+                )
+            }
+            
+            mutableState.value = mutableState.value.copy(
+                isExecutingScript = false,
+                scriptExecutionMessage = result.fold(
+                    onSuccess = { it },
+                    onFailure = { "执行失败: ${it.message}" }
+                )
+            )
+        }
+    }
+
+    /**
+     * 清除脚本执行消息
+     */
+    fun clearScriptExecutionMessage() {
+        mutableState.value = mutableState.value.copy(scriptExecutionMessage = null)
+    }
+
     companion object {
         class Factory(
             private val taskRepository: TaskRepository,
-            private val settingsRepository: SettingsRepository
+            private val settingsRepository: SettingsRepository,
+            private val context: Context,
+            private val database: AppDatabase
         ) : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
                     @Suppress("UNCHECKED_CAST")
-                    return SettingsViewModel(taskRepository, settingsRepository) as T
+                    return SettingsViewModel(taskRepository, settingsRepository, context, database) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class")
             }

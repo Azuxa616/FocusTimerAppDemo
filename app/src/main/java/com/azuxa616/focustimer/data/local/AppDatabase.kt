@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.azuxa616.focustimer.data.model.FocusSession
 import com.azuxa616.focustimer.data.model.Task
 
@@ -15,6 +16,14 @@ import com.azuxa616.focustimer.data.model.Task
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
     abstract fun focusSessionDao(): FocusSessionDao
+
+    /**
+     * 获取底层SQLiteDatabase实例
+     * 用于执行原始SQL语句
+     */
+    fun getWritableDatabase(): SupportSQLiteDatabase {
+        return openHelper.writableDatabase
+    }
 
     companion object {
         @Volatile

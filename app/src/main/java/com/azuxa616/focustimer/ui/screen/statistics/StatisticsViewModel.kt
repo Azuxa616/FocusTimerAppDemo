@@ -18,6 +18,20 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
 
+/**
+ * 统计数据临时数据类（用于在combine中传递数据）
+ */
+private data class StatisticsData(
+    val totalSessionCount: Int,
+    val totalMinutes: Int,
+    val averageMinutes: Float,
+    val dailySummaries: List<DailySummary>,
+    val taskStatistics: List<TaskStatistics>,
+    val trendChartData: List<ChartDataPoint>,
+    val comparisonChartData: List<ChartDataPoint>,
+    val taskDistributionData: List<ChartDataPoint>
+)
+
 class StatisticsViewModel(
     private val focusRepository: FocusRepository,
     private val taskRepository: TaskRepository
@@ -86,11 +100,8 @@ class StatisticsViewModel(
                 val comparisonChartData = calculateComparisonChartData(dailySummaries, timeRange)
                 val taskDistributionData = calculateTaskDistributionData(taskStatistics)
                 
-                // 计算成就数据
-                val achievementData = calculateAchievementData(now)
-                
-                mutableState.value = StatisticsState(
-                    selectedTimeRange = timeRange,
+                // 返回统计数据（不包含成就数据，因为它是suspend函数，需要在collect中调用）
+                StatisticsData(
                     totalSessionCount = totalSessionCount,
                     totalMinutes = totalMinutes,
                     averageMinutes = averageMinutes,
@@ -98,11 +109,26 @@ class StatisticsViewModel(
                     taskStatistics = taskStatistics,
                     trendChartData = trendChartData,
                     comparisonChartData = comparisonChartData,
-                    taskDistributionData = taskDistributionData,
+                    taskDistributionData = taskDistributionData
+                )
+            }.collect { statisticsData ->
+                // 在suspend上下文中计算成就数据
+                val achievementData = calculateAchievementData(now)
+                
+                mutableState.value = StatisticsState(
+                    selectedTimeRange = timeRange,
+                    totalSessionCount = statisticsData.totalSessionCount,
+                    totalMinutes = statisticsData.totalMinutes,
+                    averageMinutes = statisticsData.averageMinutes,
+                    dailySummaries = statisticsData.dailySummaries,
+                    taskStatistics = statisticsData.taskStatistics,
+                    trendChartData = statisticsData.trendChartData,
+                    comparisonChartData = statisticsData.comparisonChartData,
+                    taskDistributionData = statisticsData.taskDistributionData,
                     achievementData = achievementData,
                     isLoading = false
                 )
-            }.collect { }
+            }
         }
     }
 
