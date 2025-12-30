@@ -100,9 +100,17 @@ fun TimerScreen(
     // 格式化剩余时间为 MM:SS
     val timeText = TimeFormatter.formatMinutesSeconds(state.remainingSeconds)
 
-    // 根据模式显示状态文本
-    val statusText = if (state.isInFocusPhase) "专注中" else "休息中"
-    val cycleText = "第 ${state.currentCycleIndex}/${state.currentCycles} 循环"
+    // 根据模式显示状态文本（仅在任务中时显示）
+    val statusText = if (state.isInSession) {
+        if (state.isInFocusPhase) "专注中" else "休息中"
+    } else {
+        null
+    }
+    val cycleText = if (state.isInSession) {
+        "第 ${state.currentCycleIndex}/${state.currentCycles} 循环"
+    } else {
+        null
+    }
 
     // 获取当前选中的事项名称
     val selectedTaskName = allTasks.find { it.id == state.selectedTaskId }?.name ?: "未选择事项"
@@ -161,27 +169,17 @@ fun TimerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 圆形倒计时组件
+            // 圆形倒计时组件（包含时间、状态文本和循环信息）
             TimerCircle(
                 progress = progress,
-                timeText = timeText
+                timeText = timeText,
+                statusText = statusText,
+                cycleText = cycleText
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 状态文本
-            Text(
-                text = statusText,
-                style = MaterialTheme.typography.titleMedium
-            )
 
-            // 循环信息
-            Text(
-                text = cycleText,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // 设置区域（可折叠）
             Column(

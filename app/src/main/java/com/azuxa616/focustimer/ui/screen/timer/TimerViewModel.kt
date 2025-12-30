@@ -49,6 +49,7 @@ class TimerViewModel(
     /** 内部可变状态 */
     private val mutableState = MutableStateFlow(
         TimerState(
+            isInSession = false,
             isInFocusPhase = true,
             totalSeconds = DEFAULT_FOCUS_MINUTES.toLong() * SECONDS_PER_MINUTE,
             remainingSeconds = DEFAULT_FOCUS_MINUTES.toLong() * SECONDS_PER_MINUTE,
@@ -109,6 +110,7 @@ class TimerViewModel(
                     currentBreakMinutes = it.defaultBreakMinutes,
                     currentCycles = it.defaultCycles,
                     currentCycleIndex = 1,
+                    isInSession = false,
                     isInFocusPhase = true,
                     totalSeconds = it.defaultFocusMinutes.toLong() * SECONDS_PER_MINUTE,
                     remainingSeconds = it.defaultFocusMinutes.toLong() * SECONDS_PER_MINUTE,
@@ -173,6 +175,7 @@ class TimerViewModel(
                         currentBreakMinutes = it.defaultBreakMinutes,
                         currentCycles = it.defaultCycles,
                         currentCycleIndex = 1,
+                        isInSession = false,
                         isInFocusPhase = true,
                         totalSeconds = it.defaultFocusMinutes.toLong() * SECONDS_PER_MINUTE,
                         remainingSeconds = it.defaultFocusMinutes.toLong() * SECONDS_PER_MINUTE,
@@ -196,8 +199,22 @@ class TimerViewModel(
             return
         }
 
+        // 如果不在任务中，开始新任务
+        if (!current.isInSession) {
+            // 重置为专注阶段
+            mutableState.value = current.copy(
+                isInSession = true,
+                isInFocusPhase = true,
+                currentCycleIndex = 1,
+                totalSeconds = current.currentFocusMinutes.toLong() * SECONDS_PER_MINUTE,
+                remainingSeconds = current.currentFocusMinutes.toLong() * SECONDS_PER_MINUTE,
+                isRunning = false
+            )
+        }
+
         // 如果时间已用完，先重置
-        if (current.remainingSeconds <= 0) {
+        val updatedState = mutableState.value
+        if (updatedState.remainingSeconds <= 0) {
             resetTimer()
         }
 
@@ -207,12 +224,13 @@ class TimerViewModel(
         }
 
         // 记录专注阶段开始时间（如果进入专注阶段）
-        if (current.isInFocusPhase && currentFocusPhaseStartTimeMillis == null) {
+        val finalState = mutableState.value
+        if (finalState.isInFocusPhase && currentFocusPhaseStartTimeMillis == null) {
             currentFocusPhaseStartTimeMillis = System.currentTimeMillis()
         }
 
         // 更新状态为运行中
-        mutableState.value = current.copy(isRunning = true)
+        mutableState.value = finalState.copy(isRunning = true)
 
         // 开始计时
         startTicking()
@@ -270,8 +288,18 @@ class TimerViewModel(
             }
         }
 
-        // 重置状态
-        resetTimer()
+        // 重置状态为初始状态（非任务中，专注阶段）
+        val resetState = mutableState.value
+        mutableState.value = resetState.copy(
+            isInSession = false,
+            isInFocusPhase = true,
+            currentCycleIndex = 1,
+            totalSeconds = resetState.currentFocusMinutes.toLong() * SECONDS_PER_MINUTE,
+            remainingSeconds = resetState.currentFocusMinutes.toLong() * SECONDS_PER_MINUTE,
+            isRunning = false
+        )
+        tickJob?.cancel()
+        tickJob = null
         currentSessionStartTimeMillis = null
         accumulatedFocusMinutes = 0
         currentFocusPhaseStartTimeMillis = null
@@ -314,15 +342,18 @@ class TimerViewModel(
 
     /**
      * 重置计时器（不保存会话）
+     * 如果不在任务中，重置为专注阶段；如果在任务中，保持当前阶段
      */
     private fun resetTimer() {
         tickJob?.cancel()
         tickJob = null
 
         val current = mutableState.value
-        val totalSeconds = if (current.isInFocusPhase) {
+        val totalSeconds = if (!current.isInSession || current.isInFocusPhase) {
+            // 非任务中或专注阶段，重置为专注时间
             current.currentFocusMinutes.toLong() * SECONDS_PER_MINUTE
         } else {
+            // 任务中的休息阶段，重置为休息时间
             current.currentBreakMinutes.toLong() * SECONDS_PER_MINUTE
         }
 

@@ -8,7 +8,8 @@ package com.azuxa616.focustimer.ui.screen.timer
 /**
  * 番茄钟UI状态
  *
- * @param isInFocusPhase 当前是否在专注阶段（false表示休息阶段）
+ * @param isInSession 是否在任务中（false表示非任务中，此时不显示子状态）
+ * @param isInFocusPhase 当前是否在专注阶段（false表示休息阶段，仅在isInSession为true时有效）
  * @param totalSeconds 当前阶段的总秒数
  * @param remainingSeconds 剩余秒数
  * @param isRunning 计时器是否正在运行
@@ -19,6 +20,7 @@ package com.azuxa616.focustimer.ui.screen.timer
  * @param currentCycleIndex 当前循环序号（从1开始）
  */
 data class TimerState(
+    val isInSession: Boolean,
     val isInFocusPhase: Boolean,
     val totalSeconds: Long,
     val remainingSeconds: Long,
