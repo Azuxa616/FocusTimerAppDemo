@@ -1,12 +1,12 @@
 package com.azuxa616.focustimer.ui.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.azuxa616.focustimer.ui.screen.statistics.TaskStatistics
+import com.azuxa616.focustimer.util.TimeFormatter
 
 /**
  * 任务统计卡片
@@ -41,7 +42,7 @@ fun TaskStatisticsCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             if (taskStatistics.isEmpty()) {
                 Text(
                     text = "暂无数据",
@@ -51,7 +52,7 @@ fun TaskStatisticsCard(
             } else {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     taskStatistics.forEach { task ->
                         TaskStatisticsItem(task = task)
@@ -73,7 +74,7 @@ private fun TaskStatisticsItem(
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -84,7 +85,7 @@ private fun TaskStatisticsItem(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${task.sessionCount}次 · ${formatMinutes(task.totalMinutes)}",
+                    text = "${task.sessionCount}次 · ${TimeFormatter.formatMinutes(task.totalMinutes)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -97,30 +98,10 @@ private fun TaskStatisticsItem(
         }
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
-            progress = task.percentage / 100f,
+            progress = { task.percentage / 100f },
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
     }
 }
-
-/**
- * 格式化分钟数为可读字符串
- */
-private fun formatMinutes(minutes: Int): String {
-    return when {
-        minutes < 60 -> "${minutes}分钟"
-        minutes < 1440 -> {
-            val hours = minutes / 60
-            val mins = minutes % 60
-            if (mins > 0) "${hours}小时${mins}分钟" else "${hours}小时"
-        }
-        else -> {
-            val days = minutes / 1440
-            val hours = (minutes % 1440) / 60
-            if (hours > 0) "${days}天${hours}小时" else "${days}天"
-        }
-    }
-}
-

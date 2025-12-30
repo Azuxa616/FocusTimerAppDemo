@@ -86,6 +86,8 @@ class SettingsViewModel(
                 defaultCycles = cycles
             )
             taskRepository.insertTask(task)
+            // 添加成功后关闭对话框
+            mutableState.value = mutableState.value.copy(editingTask = null)
         }
     }
 

@@ -5,9 +5,19 @@
  */
 package com.azuxa616.focustimer.ui.screen.statistics
 
+import com.azuxa616.focustimer.data.model.FocusSession
+import com.azuxa616.focustimer.data.model.Task
 import java.time.LocalDate
 
 // ==================== 枚举定义 ====================
+
+/**
+ * 统计页面Tab枚举
+ */
+enum class StatisticsTab {
+    STATISTICS,  // 统计
+    RECORDS      // 记录
+}
 
 /**
  * 时间范围枚举
@@ -81,7 +91,8 @@ data class AchievementData(
 /**
  * 统计页面UI状态
  *
- * @param selectedTimeRange 选中的时间范围
+ * @param selectedTab 选中的Tab（统计/记录）
+ * @param selectedTimeRange 选中的时间范围（仅用于统计Tab，默认ALL_TIME）
  * @param totalSessionCount 总专注次数
  * @param totalMinutes 总专注时长（分钟）
  * @param averageMinutes 平均每次专注时长（分钟）
@@ -91,10 +102,13 @@ data class AchievementData(
  * @param comparisonChartData 对比图数据（柱状图）
  * @param taskDistributionData 任务分布数据（饼图）
  * @param achievementData 成就数据
+ * @param focusSessions 专注历史记录列表（按时间倒序）
+ * @param taskMap 任务ID到任务名称的映射
  * @param isLoading 是否正在加载
  */
 data class StatisticsState(
-    val selectedTimeRange: TimeRange = TimeRange.TODAY,
+    val selectedTab: StatisticsTab = StatisticsTab.STATISTICS,
+    val selectedTimeRange: TimeRange = TimeRange.ALL_TIME,
     val totalSessionCount: Int = 0,
     val totalMinutes: Int = 0,
     val averageMinutes: Float = 0f,
@@ -104,12 +118,15 @@ data class StatisticsState(
     val comparisonChartData: List<ChartDataPoint> = emptyList(),
     val taskDistributionData: List<ChartDataPoint> = emptyList(),
     val achievementData: AchievementData = AchievementData(0, 0, 1000),
+    val focusSessions: List<FocusSession> = emptyList(),
+    val taskMap: Map<Long, Task> = emptyMap(),
     val isLoading: Boolean = false
 ) {
     companion object {
         /** 空状态 */
         val Empty = StatisticsState(
-            selectedTimeRange = TimeRange.TODAY,
+            selectedTab = StatisticsTab.STATISTICS,
+            selectedTimeRange = TimeRange.ALL_TIME,
             totalSessionCount = 0,
             totalMinutes = 0,
             averageMinutes = 0f,
@@ -119,6 +136,8 @@ data class StatisticsState(
             comparisonChartData = emptyList(),
             taskDistributionData = emptyList(),
             achievementData = AchievementData(0, 0, 1000),
+            focusSessions = emptyList(),
+            taskMap = emptyMap(),
             isLoading = false
         )
     }

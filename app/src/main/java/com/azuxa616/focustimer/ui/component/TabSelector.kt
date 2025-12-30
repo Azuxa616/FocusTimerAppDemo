@@ -12,17 +12,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.azuxa616.focustimer.ui.screen.statistics.TimeRange
+import com.azuxa616.focustimer.ui.screen.statistics.StatisticsTab
 
 /**
- * 时间范围选择器
+ * Tab选择器
  *
- * 允许用户在不同时间范围之间切换
+ * 允许用户在"统计"和"记录"两个Tab之间切换
  */
 @Composable
-fun TimeRangeSelector(
-    selectedRange: TimeRange,
-    onRangeSelected: (TimeRange) -> Unit,
+fun TabSelector(
+    selectedTab: StatisticsTab,
+    onTabSelected: (StatisticsTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -31,14 +31,14 @@ fun TimeRangeSelector(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        TimeRange.values().forEach { range ->
-            val isSelected = range == selectedRange
+        StatisticsTab.values().forEach { tab ->
+            val isSelected = tab == selectedTab
             Surface(
                 modifier = Modifier
                     .toggleable(
                         value = isSelected,
                         role = Role.RadioButton,
-                        onValueChange = { if (!isSelected) onRangeSelected(range) }
+                        onValueChange = { if (!isSelected) onTabSelected(tab) }
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 shape = MaterialTheme.shapes.small,
@@ -49,7 +49,7 @@ fun TimeRangeSelector(
                 }
             ) {
                 Text(
-                    text = getTimeRangeLabel(range),
+                    text = getTabLabel(tab),
                     style = MaterialTheme.typography.labelMedium,
                     color = if (isSelected) {
                         MaterialTheme.colorScheme.onPrimaryContainer
@@ -64,15 +64,12 @@ fun TimeRangeSelector(
 }
 
 /**
- * 获取时间范围的显示标签
+ * 获取Tab的显示标签
  */
-private fun getTimeRangeLabel(range: TimeRange): String {
-    return when (range) {
-        TimeRange.TODAY -> "今日"
-        TimeRange.WEEK -> "本周"
-        TimeRange.MONTH -> "本月"
-        TimeRange.YEAR -> "本年"
-        TimeRange.ALL_TIME -> "全部"
+private fun getTabLabel(tab: StatisticsTab): String {
+    return when (tab) {
+        StatisticsTab.STATISTICS -> "统计"
+        StatisticsTab.RECORDS -> "记录"
     }
 }
 
