@@ -3,6 +3,7 @@ package com.azuxa616.focustimer.ui.screen.statistics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.azuxa616.focustimer.data.model.FocusSession
 import com.azuxa616.focustimer.data.repository.FocusRepository
 import com.azuxa616.focustimer.data.repository.TaskRepository
 import com.azuxa616.focustimer.util.StatisticsCalculator
@@ -73,6 +74,15 @@ class StatisticsViewModel(
         )
         if (mutableState.value.selectedTab == StatisticsTab.STATISTICS) {
             loadStatisticsForTimeRange(timeRange)
+        }
+    }
+
+    /**
+     * 删除专注会话记录
+     */
+    fun deleteSession(session: FocusSession) {
+        viewModelScope.launch {
+            focusRepository.deleteFocusSession(session)
         }
     }
 

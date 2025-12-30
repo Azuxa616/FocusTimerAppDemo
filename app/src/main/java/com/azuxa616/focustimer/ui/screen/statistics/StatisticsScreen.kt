@@ -119,7 +119,8 @@ fun StatisticsScreen(
                                     val taskName = state.taskMap[session.taskId]?.name ?: "未知任务"
                                     FocusSessionItem(
                                         session = session,
-                                        taskName = taskName
+                                        taskName = taskName,
+                                        onDelete = { viewModel.deleteSession(session) }
                                     )
                                 }
                             }

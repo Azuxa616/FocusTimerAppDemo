@@ -1,6 +1,7 @@
 package com.azuxa616.focustimer.data.local
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -37,5 +38,11 @@ interface FocusSessionDao {
      */
     @Query("SELECT * FROM focus_sessions ORDER BY startTimeMillis DESC")
     fun getAllSessions(): Flow<List<FocusSession>>
+
+    /**
+     * 删除会话
+     */
+    @Delete
+    suspend fun delete(session: FocusSession)
 }
 

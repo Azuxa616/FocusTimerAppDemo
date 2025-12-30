@@ -39,5 +39,12 @@ class FocusRepository(
     fun getAllSessions(): Flow<List<FocusSession>> {
         return focusSessionDao.getAllSessions()
     }
+
+    /**
+     * 删除专注会话记录
+     */
+    suspend fun deleteFocusSession(session: FocusSession) {
+        focusSessionDao.delete(session)
+    }
 }
 
